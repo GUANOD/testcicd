@@ -83,7 +83,7 @@ jobs:
       - name: start backend build
         working-directory: backend
         run: |
-          docker-compose -f docker-compose-build.yml up -d
+          docker compose -f docker-compose-build.yml up -d
           docker ps -a
 
       - name: Sleep for 10s
