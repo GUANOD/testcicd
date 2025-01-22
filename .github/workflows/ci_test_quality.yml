@@ -68,4 +68,75 @@ jobs:
           path: backend/coverage
           retention-days: 3
 
+  Frontend:
+    needs: [Backend]
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.head.ref, '#cesi')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
+      - name: start backend build
+        working-directory: backend
+        run: |
+          docker-compose -f docker-compose-build.yml up -d
+          docker ps -a
+
+      - name: Sleep for 10s
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '10s'
+
+      - name: Test backend
+        if: success()
+        run: curl http://127.0.0.1:12000
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      
+      - name: Cypress install
+        uses: cypress-io/github-action@v6
+        with:
+          runTests: false
+          workingDirectory: frontend
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          workingDirectory: frontend
+          record: true
+          parallel: true
+          group: 'Integration Tests'
+          start: npm start dev
+          wait-on: 'http://localhost:3000'
+          command-prefix: 'npx cypress run --record --key ${{ secrets.CYPRESS_RECORD_KEY }}'
+      
+      - name : Upload screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress screenshots
+          path: frontend/cypress/screenshots
+          retention-days: 1
+      
+      - name : Upload videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress videos
+          path: frontend/cypress/videos
+          retention-days: 3
+
+      - name : clean builder
+        working-directory: frontend
+        run: docker compose -f docker-compose-build.yml down
