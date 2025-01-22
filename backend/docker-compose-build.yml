@@ -41,6 +41,7 @@ services:
       BDD_PORT: 3306
       BDD_USER: test
       BDD_PASS: test
+      SERVER_PORT: 12000
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
