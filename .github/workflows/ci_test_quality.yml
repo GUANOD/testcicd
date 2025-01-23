@@ -137,13 +137,32 @@ jobs:
         working-directory: backend
         run: docker compose -f docker-compose-build.yml down
 
-  Quality:
-    needs: [Frontend, Backend]
+  # Quality:
+  #   needs: [Frontend, Backend]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       directory: [frontend, backend]
+  #       sonar-token: [${{ secrets.SONAR_TOKEN_FRONT }}, ${{ secrets.SONAR_TOKEN_BACK }}]
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+
+  #     - name: Sonar
+  #       uses: SonarSource/sonarqube-scan-action@v4
+  #       with:
+  #         projectBaseDir: ${{ matrix.directory }}
+  #       env:
+  #         SONAR_TOKEN: ${{ matrix.sonar-token }}
+
+
+  QualityFront:
+    needs: [Frontend]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        directory: [frontend, backend]
-        sonar-token: [${{ secrets.SONAR_TOKEN_FRONT }}, ${{ secrets.SONAR_TOKEN_BACK }}]
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       - name: Checkout
@@ -152,47 +171,28 @@ jobs:
       - name: Sonar
         uses: SonarSource/sonarqube-scan-action@v4
         with:
-          projectBaseDir: ${{ matrix.directory }}
+          projectBaseDir: frontend
         env:
-          SONAR_TOKEN: ${{ matrix.sonar-token }}
-
-
-  # QualityFront:
-  #   needs: [Frontend]
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: frontend
-
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Sonar
-  #       uses: SonarSource/sonarqube-scan-action@v4
-  #       with:
-  #         projectBaseDir: frontend
-  #       env:
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONT }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONT }}
 
 
 
-  # QualityBackend:
-  #   needs: [Backend]
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: backend
+  QualityBackend:
+    needs: [Backend]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       
-  #     - name: Sonar
-  #       uses: SonarSource/sonarqube-scan-action@v4
-  #       with:
-  #         projectBaseDir: backend
-  #       env:
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACK }}
+      - name: Sonar
+        uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACK }}
 
       
