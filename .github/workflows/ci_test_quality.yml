@@ -9,133 +9,133 @@ on:
       - main
 
 jobs:
-  Backend:
-    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.head.ref, '#cesi')
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
+  # Backend:
+  #   if: github.event_name == 'pull_request' && !contains(github.event.pull_request.head.ref, '#cesi')
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: backend
     
-    services:
-      mariadb:
-        image: mariadb:latest
-        env:
-          MARIADB_ROOT_PASSWORD: toor
-          MARIADB_DATABASE: test
-          MARIADB_USER: test
-          MARIADB_PASSWORD: test
-        ports:
-          - 3306:3306
-        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+  #   services:
+  #     mariadb:
+  #       image: mariadb:latest
+  #       env:
+  #         MARIADB_ROOT_PASSWORD: toor
+  #         MARIADB_DATABASE: test
+  #         MARIADB_USER: test
+  #         MARIADB_PASSWORD: test
+  #       ports:
+  #         - 3306:3306
+  #       options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
 
-    env:
-      BDD_HOST: 127.0.0.1
-      BDD_PORT: 3306
-      BDD_USER: test
-      BDD_PASS: test
+  #   env:
+  #     BDD_HOST: 127.0.0.1
+  #     BDD_PORT: 3306
+  #     BDD_USER: test
+  #     BDD_PASS: test
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Check database cnx
-        run: |
-          sudo apt-get install -y mariadb-client
-          mysql --host=$BDD_HOST --port=$BDD_PORT --user=$BDD_USER --password=$BDD_PASS --execute="SHOW DATABASES;"
+  #     - name: Check database cnx
+  #       run: |
+  #         sudo apt-get install -y mariadb-client
+  #         mysql --host=$BDD_HOST --port=$BDD_PORT --user=$BDD_USER --password=$BDD_PASS --execute="SHOW DATABASES;"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 20.x
 
-      - name: Install dependencies
-        run: npm install
+  #     - name: Install dependencies
+  #       run: npm install
 
-      - name: Init database
-        run: npm run initbdd
+  #     - name: Init database
+  #       run: npm run initbdd
 
-      - name: Populate BDD
-        run: |
-          mysql -u root -ptoor --host 127.0.0.1 --port 3306 --database test < ./test/insert_test_user.sql
+  #     - name: Populate BDD
+  #       run: |
+  #         mysql -u root -ptoor --host 127.0.0.1 --port 3306 --database test < ./test/insert_test_user.sql
 
-      - name: Run tests
-        run: npm run test:cov
+  #     - name: Run tests
+  #       run: npm run test:cov
       
-      - name : Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: backend/coverage
-          retention-days: 3
+  #     - name : Upload coverage
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: coverage-report
+  #         path: backend/coverage
+  #         retention-days: 3
 
-  Frontend:
-    needs: [Backend]
-    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.head.ref, '#cesi')
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
+  # Frontend:
+  #   needs: [Backend]
+  #   if: github.event_name == 'pull_request' && !contains(github.event.pull_request.head.ref, '#cesi')
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: frontend
     
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: start backend build
-        working-directory: backend
-        run: |
-          docker compose -f docker-compose-build.yml up -d
-          docker ps -a
+  #     - name: start backend build
+  #       working-directory: backend
+  #       run: |
+  #         docker compose -f docker-compose-build.yml up -d
+  #         docker ps -a
 
-      - name: Sleep for 10s
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '10s'
+  #     - name: Sleep for 10s
+  #       uses: jakejarvis/wait-action@master
+  #       with:
+  #         time: '10s'
 
-      - name: Test backend
-        if: success()
-        run: curl http://127.0.0.1:12000
+  #     - name: Test backend
+  #       if: success()
+  #       run: curl http://127.0.0.1:12000
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 20.x
       
-      - name: Cypress E2E Install
-        uses: cypress-io/github-action@v6
-        with:
-          runTests: false
-          working-directory: frontend
+  #     - name: Cypress E2E Install
+  #       uses: cypress-io/github-action@v6
+  #       with:
+  #         runTests: false
+  #         working-directory: frontend
 
-      - name: Install Dependencies
-        run: npm i
+  #     - name: Install Dependencies
+  #       run: npm i
 
-      - name: Start E2E Test
-        uses: cypress-io/github-action@v6
-        with:
-          install: false
-          working-directory: frontend
-          start: npm run dev
+  #     - name: Start E2E Test
+  #       uses: cypress-io/github-action@v6
+  #       with:
+  #         install: false
+  #         working-directory: frontend
+  #         start: npm run dev
       
-      - name : Upload screenshots
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress screenshots
-          path: frontend/cypress/screenshots
-          retention-days: 1
+  #     - name : Upload screenshots
+  #       uses: actions/upload-artifact@v4
+  #       if: failure()
+  #       with:
+  #         name: cypress screenshots
+  #         path: frontend/cypress/screenshots
+  #         retention-days: 1
       
-      - name : Upload videos
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: cypress videos
-          path: frontend/cypress/videos
-          retention-days: 3
+  #     - name : Upload videos
+  #       uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: cypress videos
+  #         path: frontend/cypress/videos
+  #         retention-days: 3
 
-      - name : clean builder
-        if: always()
-        working-directory: backend
-        run: docker compose -f docker-compose-build.yml down
+  #     - name : clean builder
+  #       if: always()
+  #       working-directory: backend
+  #       run: docker compose -f docker-compose-build.yml down
 
   # Quality:
   #   needs: [Frontend, Backend]
@@ -157,42 +157,47 @@ jobs:
   #         SONAR_TOKEN: ${{ matrix.sonar-token }}
 
 
-  QualityFront:
-    needs: [Frontend]
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
+  # QualityFront:
+  #   needs: [Frontend]
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: frontend
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Sonar
-        uses: SonarSource/sonarqube-scan-action@v4
-        with:
-          projectBaseDir: frontend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONT }}
+  #     - name: Sonar
+  #       uses: SonarSource/sonarqube-scan-action@v4
+  #       with:
+  #         projectBaseDir: frontend
+  #       env:
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONT }}
 
+  # QualityBackend:
+  #   needs: [Backend]
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: backend
 
-
-  QualityBackend:
-    needs: [Backend]
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
       
-      - name: Sonar
-        uses: SonarSource/sonarqube-scan-action@v4
-        with:
-          projectBaseDir: backend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACK }}
+  #     - name: Sonar
+  #       uses: SonarSource/sonarqube-scan-action@v4
+  #       with:
+  #         projectBaseDir: backend
+  #       env:
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACK }}
 
-      
+  DockerBuild:
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker_ghcr.yml
+    secrets: inherit
+
