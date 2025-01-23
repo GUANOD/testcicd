@@ -156,6 +156,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ matrix.sonar-token }}
 
+
   # QualityFront:
   #   needs: [Frontend]
   #   runs-on: ubuntu-latest
