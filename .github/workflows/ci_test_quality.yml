@@ -137,6 +137,24 @@ jobs:
     #     working-directory: backend
     #     run: docker compose -f docker-compose-build.yml down
 
+  QualityFront:
+    # needs: [Frontend]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Sonar
+        uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: frontend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONT }}
+
   QualityBackend:
     # needs: [Backend, Frontend]
     runs-on: ubuntu-latest
@@ -149,7 +167,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Sonar
-        uses: sonarsource/sonarcloud-github-action@v3.1.0
+        uses: SonarSource/sonarqube-scan-action@v4
         with:
           projectBaseDir: backend
         env:
