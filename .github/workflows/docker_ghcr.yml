@@ -33,4 +33,4 @@ jobs:
         with:
           context: backend
           push: true
-          tags: ghcr.io/testcicd/backend:latest
+          tags: ghcr.io/guanod/backend:latest
